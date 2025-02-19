@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Enterprise AI Assistant</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/5.1.1/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <style>
+    :root {
+      --primary-color: #ff6347;
+      --secondary-color: #f5f5dc;
+      --accent-color: #ffa07a;
+      --border-color: #000;
+    }
+
+    body {
+      background-color: #fff;
+      color: #000;
+      font-family: 'VT323', monospace;
+      transition: background-color 0.5s, color 0.5s;
+    }
+
+    .chat-container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 1rem;
+    }
+
+    .card {
+      background: var(--secondary-color);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 4px 4px 0 var(--border-color);
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: var(--accent-color);
+      border-bottom: 2px solid var(--border-color);
+      font-weight: bold;
+      letter-spacing: 1px;
+      text-align: center;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #historyBtn {
+      background: var(--primary-color);
+      border: 2px solid var(--border-color);
+      color: #fff;
+      padding: 0.3rem 0.6rem;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    #historyBtn:hover {
+      transform: translateY(-2px);
+    }
+
+    .conversation {
+      height: 60vh;
+      overflow-y: auto;
+      background: #fff;
+      border: 2px dashed var(--border-color);
+      border-radius: 4px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      transition: background-color 0.5s;
+    }
+
+    .message {
+      margin: 1rem 0;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .message.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .message.user .content {
+      background: var(--primary-color);
+      color: #fff;
+      border: 2px solid var(--border-color);
+      border-radius: 10px 10px 0 10px;
+      padding: 0.5rem 1rem;
+      display: inline-block;
+      max-width: 80%;
+    }
+
+    .message.assistant .content {
+      background: #eee;
+      color: #000;
+      border: 2px solid var(--border-color);
+      border-radius: 10px 10px 10px 0;
+      padding: 0.5rem 1rem;
+      display: inline-block;
+      max-width: 80%;
+    }
+
+    pre {
+      background: #fff;
+      border: 2px solid var(--border-color);
+      border-radius: 4px;
+      padding: 1rem;
+      overflow-x: auto;
+    }
+
+    code {
+      font-family: 'VT323', monospace;
+      font-size: 1em;
+    }
+
+    #sendButton {
+      background: var(--primary-color);
+      border: 2px solid var(--border-color);
+      color: #fff;
+      font-weight: bold;
+      letter-spacing: 1px;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+
+    #sendButton:disabled {
+      opacity: 0.7;
+    }
+
+    #sendButton:hover {
+      transform: translateY(-2px);
+      background: var(--accent-color);
+    }
+
+    .thinking-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #000;
+    }
+
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+    }
+
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--border-color);
+      border-radius: 50%;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+
+    @keyframes typing {
+
+      0%,
+      40%,
+      100% {
+        transform: translateY(0);
+      }
+
+      20% {
+        transform: translateY(-4px);
+      }
+    }
+
+    .conversation::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .conversation::-webkit-scrollbar-track {
+      background: #fff;
+    }
+
+    .conversation::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    .modal-content {
+      background: var(--secondary-color);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      font-family: 'VT323', monospace;
+    }
+
+    .modal-header,
+    .modal-footer {
+      background: var(--accent-color);
+      border: none;
+    }
+
+    .modal-body button {
+      background: var(--primary-color);
+      border: 2px solid var(--border-color);
+      color: #fff;
+      width: 100%;
+      margin-bottom: 0.5rem;
+      transition: transform 0.2s;
+    }
+
+    .modal-body button:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container chat-container">
+    <div class="card">
+      <div class="card-header">
+        <span><i class="bi bi-robot"></i> Enterprise AI Assistant</span>
+        <span id="historyBtn">History</span>
+      </div>
+      <div class="card-body">
+        <div id="conversation" class="conversation"></div>
+        <div class="input-group mt-3">
+          <textarea id="prompt" class="form-control" rows="3" placeholder="Type your message here..." style="border: 2px solid var(--border-color);"></textarea>
+          <button id="sendButton" class="btn">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="historyModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Conversation History</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="historyList"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    marked.setOptions({ highlight: code => hljs.highlightAuto(code).value, breaks: true });
+    let apiKey = localStorage.getItem('apiKey');
+    if (!apiKey) { apiKey = prompt("Enter your API key:"); if (!apiKey) { alert("API key is required!"); throw new Error("No API key provided"); } localStorage.setItem('apiKey', apiKey); }
+    if (window.location.pathname === "/" || window.location.pathname === "") {
+      const randomPath = '/chat_' + Math.random().toString(36).substring(2, 8) + Date.now();
+      history.replaceState({}, '', randomPath);
+    }
+    const hiddenSection = [{
+      role: "system",
+      content: "You're a helpful assistant."
+      }];
+    let convKey = window.location.pathname;
+    let convs = JSON.parse(localStorage.getItem('conversations') || '{}');
+    let messages = convs[convKey] ? convs[convKey].messages : [...hiddenSection, { role: "assistant", content: "How may I help you?" }];
+    localStorage.setItem('conversations', JSON.stringify({ ...convs, [convKey]: { messages: messages } }));
+
+    function saveConversation() {
+      let all = JSON.parse(localStorage.getItem('conversations') || '{}');
+      all[convKey] = { messages: messages };
+      localStorage.setItem('conversations', JSON.stringify(all));
+    }
+
+    function appendMessage(role, content) {
+      const formatted = role === 'assistant' ? marked.parse(content) : content;
+      const msg = $(`<div class="message ${role}"><div class="content">${formatted}</div></div>`);
+      $('#conversation').append(msg);
+      setTimeout(() => msg.addClass('show'), 10);
+      $('#conversation').scrollTop($('#conversation')[0].scrollHeight);
+      hljs.highlightAll();
+    }
+
+    function renderConversation() {
+      $('#conversation').empty();
+      let startFrom = messages.slice(hiddenSection.length)
+      startFrom.forEach(m => appendMessage(m.role, m.content));
+    }
+    renderConversation();
+    $('#sendButton').click(async function() {
+      const promptText = $('#prompt').val().trim();
+      if (!promptText) return;
+      const btn = $(this);
+      btn.prop('disabled', true).text('Sent');
+      messages.push({ role: 'user', content: promptText });
+      appendMessage('user', promptText);
+      $('#prompt').val('');
+      const thinkingMsg = $(`
+    <div class="message assistant">
+      <div class="content">
+        <div class="thinking-container">
+          <div class="typing-indicator">
+            <div class="typing-dot"></div>
+            <div class="typing-dot" style="animation-delay:0.2s"></div>
+            <div class="typing-dot" style="animation-delay:0.4s"></div>
+          </div>
+          <span>Processing request...</span>
+        </div>
+      </div>
+    </div>
+  `);
+      $('#conversation').append(thinkingMsg);
+      setTimeout(() => thinkingMsg.addClass('show'), 10);
+      try {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+          body: JSON.stringify({ messages: messages, model: "llama-3.3-70b-versatile", temperature: 0.7, max_completion_tokens: 1024, stream: true })
+        });
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let aiContent = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
+          lines.forEach(line => {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.choices[0].delta.content) {
+                aiContent += data.choices[0].delta.content;
+                thinkingMsg.find('.content').html(marked.parse(aiContent));
+                hljs.highlightAll();
+                $('#conversation').scrollTop($('#conversation')[0].scrollHeight);
+              }
+            } catch (e) {}
+          });
+        }
+        messages.push({ role: 'assistant', content: aiContent });
+        saveConversation();
+      } catch (err) {
+        alert("Error: " + err.message);
+        thinkingMsg.find('.content').html(`<span class="text-danger">Error: ${err.message}</span>`);
+      } finally {
+        btn.prop('disabled', false).text('Send');
+      }
+    });
+    $('#historyBtn').click(function() {
+      const all = JSON.parse(localStorage.getItem('conversations') || '{}');
+      const list = Object.keys(all).map(key => `<button class="btn history-item" data-path="${key}">${key}</button>`).join('');
+      $('#historyList').html(list);
+      new bootstrap.Modal(document.getElementById('historyModal')).show();
+    });
+    $(document).on('click', '.history-item', function() {
+      const path = $(this).data('path');
+      convKey = path;
+      history.replaceState({}, '', path);
+      messages = JSON.parse(localStorage.getItem('conversations'))[path].messages;
+      renderConversation();
+      saveConversation();
+      bootstrap.Modal.getInstance(document.getElementById('historyModal')).hide();
+    });
+  </script>
+</body>
+
+</html>
