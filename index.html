@@ -53,7 +53,7 @@
       align-items: center;
     }
 
-    #historyBtn {
+    #clearBtn {
       background: var(--primary-color);
       border: 2px solid var(--border-color);
       color: #fff;
@@ -62,7 +62,7 @@
       transition: transform 0.2s;
     }
 
-    #historyBtn:hover {
+    #clearBtn:hover {
       transform: translateY(-2px);
     }
 
@@ -218,8 +218,8 @@
   <div class="container chat-container">
     <div class="card">
       <div class="card-header">
-        <span><i class="bi bi-robot"></i> Enterprise AI Assistant</span>
-        <span id="historyBtn">History</span>
+        <span><i class="bi bi-robot"></i>RetroGPT</span>
+        <span id="clearBtn">Clear</span>
       </div>
       <div class="card-body">
         <div id="conversation" class="conversation"></div>
@@ -251,6 +251,7 @@
     if (!apiKey) { apiKey = prompt("Enter your API key:"); if (!apiKey) { alert("API key is required!"); throw new Error("No API key provided"); } localStorage.setItem('apiKey', apiKey); }
     if (window.location.pathname === "/" || window.location.pathname === "") {
       const randomPath = '/chat_' + Math.random().toString(36).substring(2, 8) + Date.now();
+      window.location.pathname = randomPath;
       history.replaceState({}, '', randomPath);
     }
     const hiddenSection = [{
@@ -259,7 +260,7 @@
       }];
     let convKey = window.location.pathname;
     let convs = JSON.parse(localStorage.getItem('conversations') || '{}');
-    let messages = convs[convKey] ? convs[convKey].messages : [...hiddenSection, { role: "assistant", content: "How may I help you?" }];
+    let messages = convs[convKey] ? convs[convKey].messages : [...hiddenSection];
     localStorage.setItem('conversations', JSON.stringify({ ...convs, [convKey]: { messages: messages } }));
 
     function saveConversation() {
@@ -342,11 +343,15 @@
         btn.prop('disabled', false).text('Send');
       }
     });
-    $('#historyBtn').click(function() {
-      const all = JSON.parse(localStorage.getItem('conversations') || '{}');
-      const list = Object.keys(all).map(key => `<button class="btn history-item" data-path="${key}">${key}</button>`).join('');
-      $('#historyList').html(list);
-      new bootstrap.Modal(document.getElementById('historyModal')).show();
+
+    $('#clearBtn').click(function() {
+      localStorage.removeItem('conversations');
+      $('#historyList').html('');
+      renderConversation();
+      saveConversation();
+      messages = [...hiddenSection];
+      new bootstrap.Modal(document.getElementById('historyModal')).hide();
+      window.location.reload();
     });
     $(document).on('click', '.history-item', function() {
       const path = $(this).data('path');
